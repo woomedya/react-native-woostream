@@ -1,0 +1,23 @@
+{
+  "name": "react-native-woostream",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woomedya/react-native-woostream.git"
+  },
+  "author": "woomedya",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/woomedya/react-native-woostream/issues"
+  },
+  "homepage": "https://github.com/woomedya/react-native-woostream#readme",
+  "dependencies": {
+    "@react-native-community/slider": "^2.0.8",
+    "react-native-music-control": "^0.11.0"
+  }
+}
