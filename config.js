@@ -1,8 +1,9 @@
 
 
 import { Image, } from 'react-native';
+
 export default opts = {
-    title: 'Woo Medya Share',
+    title: 'Woo Medya',
     message: 'Woo Medya Yazılım Şirketi',
     url: 'http://www.woomedya.com.tr',
     iconPlay: require('./assets/iconPlay.png'),
@@ -14,4 +15,5 @@ export default opts = {
     iconFavoriDisable: require('./assets/iconFavoriDisable.png'),
     iconFavoriEnable: require('./assets/iconFavoriEnable.png'),
     backgroundImage: Image.resolveAssetSource(require('./assets/backgroundImage.png')).uri,
+    stopPreviousPlayers: true
 };
