@@ -1,7 +1,5 @@
 
 
-import { Image, } from 'react-native';
-
 export default opts = {
     title: 'Woo Medya',
     message: 'Woo Medya Yazılım Şirketi',
@@ -14,6 +12,6 @@ export default opts = {
     iconShare: require('./assets/iconShare.png'),
     iconFavoriDisable: require('./assets/iconFavoriDisable.png'),
     iconFavoriEnable: require('./assets/iconFavoriEnable.png'),
-    backgroundImage: Image.resolveAssetSource(require('./assets/backgroundImage.png')).uri,
+    backgroundImage: require('./assets/backgroundImage.png'),
     stopPreviousPlayers: true
 };

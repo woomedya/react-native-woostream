@@ -8,6 +8,7 @@ import * as playerStore from './libs/playerstore';
 
 const logo = require('./assets/logo.png');
 
+const backgroundImageLocal = require('./assets/backgroundImage.png');
 export const config = ({
     title, message, url, iconPlay, iconPause, iconPrev, iconNext, iconVolume, iconShare, iconFavoriDisable, iconFavoriEnable, backgroundImage,
     stopPreviousPlayers
@@ -23,7 +24,7 @@ export const config = ({
     opts.iconShare = iconShare || opts.iconShare;
     opts.iconFavoriDisable = iconFavoriDisable || opts.iconFavoriDisable;
     opts.iconFavoriEnable = iconFavoriEnable || opts.iconFavoriEnable;
-    opts.backgroundImage = backgroundImage || opts.backgroundImage;
+    opts.backgroundImage = backgroundImage || backgroundImageLocal;
 
     if (stopPreviousPlayers != null)
         opts.stopPreviousPlayers = stopPreviousPlayers;
@@ -246,7 +247,7 @@ export default class WooStream extends React.Component {
                         ref={(ref) => { this.player = ref }}
                         onBuffer={this.onBuffer}
                         onError={this.videoError}
-                        poster={opts.backgroundImage}
+                        poster={Image.resolveAssetSource(opts.backgroundImage).uri}
                         posterResizeMode={"cover"}
                         onLoad={this.onLoad}
                         paused={this.state.paused}
