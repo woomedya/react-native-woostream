@@ -66,6 +66,7 @@ export default class WooStream extends React.Component {
         if (opts.stopPreviousPlayers) {
             playerStore.default.addListener('id', this.controlCurrentPlayer);
         }
+        AppState.addEventListener('change', this._handleAppStateChange);
     }
 
     componentWillUnmount = () => {
@@ -74,15 +75,9 @@ export default class WooStream extends React.Component {
         if (opts.stopPreviousPlayers) {
             playerStore.default.removeListener('id', this.controlCurrentPlayer);
         }
+        AppState.removeEventListener('change', this._handleAppStateChange);
     }
-    _handleAppStateChange = (nextAppState) => {
-        if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-            // console.log('App has come to the foreground!');    
-            this.setState({ appStatus: false });
-        }
-        this.setState({ appState: nextAppState, appStatus: true });
 
-    };
     componentDidUpdate(prevProps) {
         var state = {};
 
@@ -113,6 +108,15 @@ export default class WooStream extends React.Component {
         if (Object.keys(state).length)
             this.setState(state);
     }
+
+    _handleAppStateChange = (nextAppState) => {
+        if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+            // console.log('App has come to the foreground!');    
+            this.setState({ appStatus: false });
+        }
+        this.setState({ appState: nextAppState, appStatus: true });
+
+    };
 
     controlCurrentPlayer = () => {
         if (!this.state.paused) {
