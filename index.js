@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, Share, View, Image } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, Share, View, Image, AppState } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
@@ -57,6 +57,8 @@ export default class WooStream extends React.Component {
             notiGenre: this.props.notiGenre || "",
             notiDescription: this.props.notiDescription || "",
             notiNotificationIcon: this.props.notiNotificationIcon || "ic_launcher",
+            appState: AppState.currentState,
+            appStatus: true,
         }
     }
 
@@ -73,7 +75,14 @@ export default class WooStream extends React.Component {
             playerStore.default.removeListener('id', this.controlCurrentPlayer);
         }
     }
+    _handleAppStateChange = (nextAppState) => {
+        if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+            // console.log('App has come to the foreground!');    
+            this.setState({ appStatus: false });
+        }
+        this.setState({ appState: nextAppState, appStatus: true });
 
+    };
     componentDidUpdate(prevProps) {
         var state = {};
 
@@ -242,7 +251,7 @@ export default class WooStream extends React.Component {
                         </> : null
                     }
 
-                    <Video
+                    {this.state.appStatus ? <Video
                         source={{ uri: this.state.link }}
                         ref={(ref) => { this.player = ref }}
                         onBuffer={this.onBuffer}
@@ -261,7 +270,7 @@ export default class WooStream extends React.Component {
                         volume={this.state.volume}
                         style={styles.backgroundVideo}
                         playInBackground
-                    />
+                    /> : null}
 
                     {
                         !this.state.controls ? <>
