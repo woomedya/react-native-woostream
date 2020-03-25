@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/woomedya/react-native-woostream#readme",
   "dependencies": {
-    "jutore": "^1.0.0",
+    "jutore": "^1.0.0"
   },
   "peerDependencies": {
     "@react-native-community/slider": "^2.0.8",

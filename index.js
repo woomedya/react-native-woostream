@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, Share, View, Image, AppState } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
 import opts from './config';
 import * as playerStore from './libs/playerstore';
+import * as mainStore from './libs/mainstore';
+import { ListItem } from 'react-native-elements';
 
 const logo = require('./assets/logo.png');
 
@@ -30,35 +32,29 @@ export const config = ({
         opts.stopPreviousPlayers = stopPreviousPlayers;
 }
 
-var idCounter = 0;
+var streamer = null;
 
 export default class WooStream extends React.Component {
     constructor(props) {
         super(props);
 
-        this.id = idCounter++;
+        this.id = props.description;
 
-        this.onBuffer = this.onBuffer.bind(this);
+        var mainState = mainStore.getCurrent();
 
         this.state = {
             duration: 0.0,
             currentTime: 0.0,
             volume: 1,
             muted: false,
-            controls: this.props.video || false,
-            paused: true,
-            isBuffering: false,
+            paused: this.id == mainState.id ? mainState.paused : true,
             link: this.props.link,
             favoriStatus: this.props.favoriStatus || false,
-            notiTtile: this.props.notiTtile || "",
-            notiIkon: this.props.notiIkon || logo,
-            notiAlbum: this.props.notiAlbum || "",
-            notiArtist: this.props.notiArtist || "",
-            notiGenre: this.props.notiGenre || "",
-            notiDescription: this.props.notiDescription || "",
-            notiNotificationIcon: this.props.notiNotificationIcon || "ic_launcher",
-            appState: AppState.currentState,
-            appStatus: true,
+            title: this.props.title,
+            icon: this.props.icon,
+            description: this.props.description,
+            mainState: mainState,
+            mainStateId: mainState.id
         }
     }
 
@@ -66,7 +62,11 @@ export default class WooStream extends React.Component {
         if (opts.stopPreviousPlayers) {
             playerStore.default.addListener('id', this.controlCurrentPlayer);
         }
-        AppState.addEventListener('change', this._handleAppStateChange);
+
+        mainStore.default.addListener(mainStore.STATE, this.setMainState);
+
+        MusicControl.on('play', this.onPlay);
+        MusicControl.on('pause', this.onPause)
     }
 
     componentWillUnmount = () => {
@@ -75,7 +75,11 @@ export default class WooStream extends React.Component {
         if (opts.stopPreviousPlayers) {
             playerStore.default.removeListener('id', this.controlCurrentPlayer);
         }
-        AppState.removeEventListener('change', this._handleAppStateChange);
+
+        mainStore.default.removeListener(mainStore.STATE, this.setMainState);
+
+        MusicControl.off('play', this.onPlay);
+        MusicControl.off('pause', this.onPause);
     }
 
     componentDidUpdate(prevProps) {
@@ -87,36 +91,22 @@ export default class WooStream extends React.Component {
         if (prevProps.link != this.props.link)
             state.link = this.props.link;
 
-        if (prevProps.notiTtile != this.props.notiTtile)
-            state.notiTtile = this.props.notiTtile;
+        if (prevProps.title != this.props.title)
+            state.title = this.props.title;
 
-        if (prevProps.notiIkon != this.props.notiIkon)
-            state.notiIkon = this.props.notiIkon;
+        if (prevProps.icon != this.props.icon)
+            state.icon = this.props.icon;
 
-        if (prevProps.notiAlbum != this.props.notiAlbum)
-            state.notiAlbum = this.props.notiAlbum;
-
-        if (prevProps.notiArtist != this.props.notiArtist)
-            state.notiArtist = this.props.notiArtist;
-
-        if (prevProps.notiGenre != this.props.notiGenre)
-            state.notiGenre = this.props.notiGenre;
-
-        if (prevProps.notiDescription != this.props.notiDescription)
-            state.notiDescription = this.props.notiDescription;
+        if (prevProps.description != this.props.description)
+            state.description = this.props.description;
 
         if (Object.keys(state).length)
-            this.setState(state);
+            this.setState(state, () => {
+                this.setMainValue()
+
+                this.setMusicControl();
+            });
     }
-
-    _handleAppStateChange = (nextAppState) => {
-        if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
-            // console.log('App has come to the foreground!');    
-            this.setState({ appStatus: false });
-        }
-        this.setState({ appState: nextAppState, appStatus: true });
-
-    };
 
     controlCurrentPlayer = () => {
         if (!this.state.paused) {
@@ -127,17 +117,32 @@ export default class WooStream extends React.Component {
         }
     }
 
+    setMainValue = () => {
+        if (!this.state.paused) {
+            mainStore.setCurrent(this.id, this.state);
+        }
+    }
+
+    setMainState = () => {
+        var mainState = mainStore.getCurrent();
+        this.setState({
+            mainState,
+            mainStateId: mainState.id,
+            paused: this.id == mainState.id ? mainState.paused : this.state.paused
+        });
+    }
+
     setMusicControl = () => {
         MusicControl.setNowPlaying({
-            title: this.state.notiTtile,
-            artwork: this.state.notiIkon,
-            artist: this.state.notiArtist,
-            album: this.state.notiAlbum,
-            genre: this.state.notiGenre,
+            title: this.props.notiTtile || "",
+            artwork: this.props.notiIkon || logo,
+            artist: this.props.notiArtist || "",
+            album: this.props.notiAlbum || "",
+            genre: this.props.notiGenre || "",
+            description: this.props.notiDescription || "",
+            notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
             maxVolume: 1,
-            volume: this.state.volume,
-            description: this.state.notiDescription,
-            notificationIcon: this.state.notiNotificationIcon
+            volume: this.props.volume,
         });
 
         MusicControl.enableBackgroundMode(true);
@@ -146,14 +151,13 @@ export default class WooStream extends React.Component {
         MusicControl.enableControl('play', true)
         MusicControl.enableControl('changePlaybackPosition', true)
         MusicControl.enableControl('volume', true)
-        MusicControl.enableControl('closeNotification', true, { when: 'pause' })
-
-        MusicControl.on('play', this.onPlay);
-        MusicControl.on('pause', this.onPause)
+        MusicControl.enableControl('closeNotification', true, { when: 'pause' });
     };
 
     onPlay = () => {
         this.setState({ paused: false }, () => {
+            this.setMainValue();
+
             this.setMusicControl();
 
             MusicControl.updatePlayback({
@@ -166,6 +170,8 @@ export default class WooStream extends React.Component {
 
     onPause = () => {
         this.setState({ paused: true }, () => {
+            this.setMainValue()
+
             MusicControl.updatePlayback({
                 state: MusicControl.STATE_PAUSED,
             })
@@ -174,6 +180,8 @@ export default class WooStream extends React.Component {
 
     onLoad = (data) => {
         this.setState({ duration: data.duration }, () => {
+            this.setMainValue()
+
             MusicControl.updatePlayback({
                 state: MusicControl.STATE_PAUSED,
                 elapsedTime: Number(this.state.currentTime.toFixed()),
@@ -184,6 +192,8 @@ export default class WooStream extends React.Component {
 
     onProgress = (data) => {
         this.setState({ currentTime: data.currentTime }, () => {
+            this.setMainValue()
+
             if (!this.state.paused)
                 MusicControl.updatePlayback({
                     state: MusicControl.STATE_PLAYING,
@@ -194,16 +204,26 @@ export default class WooStream extends React.Component {
     }
 
     onBuffer = ({ isBuffering }) => {
-        this.setState({ isBuffering: isBuffering });
+        // TODO: ihtiyaç durumunda kullanılabilir
     }
 
     volumeChange = (volume) => {
         this.setState({ volume }, () => {
+            this.setMainValue()
+
             MusicControl.updatePlayback({
                 volume: volume,
                 maxVolume: 1,
             })
         })
+    }
+
+    muteToggle = () => {
+        this.setState({
+            muted: !this.state.muted
+        }, () => {
+            this.setMainValue()
+        });
     }
 
     pausedPlay = () => {
@@ -214,14 +234,24 @@ export default class WooStream extends React.Component {
         }
     }
 
+    mainPausedPlay = () => {
+        mainStore.setCurrent(this.state.mainStateId, {
+            ...this.state.mainState,
+            paused: !this.state.mainState.paused
+        });
+    }
+
     favoriPress = () => {
-        this.setState({ favoriStatus: !this.state.favoriStatus },
-            () => this.props.favori && this.props.favori(this.state.favoriStatus))
+        this.setState({
+            favoriStatus: !this.state.favoriStatus
+        }, () => {
+            if (this.props.favori) this.props.favori(this.state.favoriStatus);
+        })
     }
 
     shareRadio = async () => {
         try {
-            const result = await Share.share({
+            await Share.share({
                 title: opts.title,
                 message: opts.message,
                 url: opts.url,
@@ -231,73 +261,95 @@ export default class WooStream extends React.Component {
         }
     };
 
+    renderMain = () => {
+        return this.state.mainStateId && this.state.mainStateId != this.id ? <>
+            <ListItem
+                containerStyle={styles.mainContainer}
+                leftElement={
+                    <Image
+                        source={{ uri: this.state.mainState.icon }}
+                        style={styles.mainRadioIcon}
+                        resizeMode="contain"
+                    />
+                }
+                title={this.state.mainState.title}
+                titleStyle={styles.mainRadioTitle}
+                subtitle={this.state.mainState.description}
+                subtitleStyle={styles.mainRadioDescription}
+                rightElement={
+                    <TouchableOpacity onPress={this.mainPausedPlay}>
+                        <Image
+                            source={this.state.mainState.paused ? opts.iconPlay : opts.iconPause}
+                            style={styles.mainPlayIcon} />
+                    </TouchableOpacity>
+                }
+            />
+        </> : null;
+    }
+
+    renderStreamer = () => {
+        var state = !this.state.mainStateId || this.id == this.state.mainStateId ? this.state : this.state.mainState;
+
+        if (streamer == null)
+            streamer = this.id;
+
+        return streamer == this.id ? <Video
+            source={{ uri: state.link }}
+            ref={(ref) => { this.player = ref }}
+            onBuffer={this.onBuffer}
+            onError={this.videoError}
+            posterResizeMode={"cover"}
+            onLoad={this.onLoad}
+            paused={state.paused}
+            playWhenInactive={true}
+            onProgress={this.onProgress}
+            audioOnly={true}
+            allowsExternalPlayback={true}
+            controls={false}
+            muted={state.muted}
+            volume={state.volume}
+            playInBackground
+        /> : null;
+    }
+
     render() {
         return (
-            <View style={{ height: 250, position: 'relative', width: '100%' }}>
-                <View style={{ flex: 1 }}>
-                    {
-                        this.state.controls ? <>
-                            <View style={styles.headerViewTop}>
-                                <TouchableOpacity
-                                    onPress={this.shareRadio}>
-                                    <Image source={iconShare}
-                                        style={[styles.headerImage, { tintColor: "#000" }]} />
-                                </TouchableOpacity>
-                                {
-                                    this.props.favori ? <TouchableOpacity
-                                        onPress={() => this.props.favori(this.state.favoriStatus)}>
-                                        <Image source={this.state.favoriStatus ? opts.iconFavoriEnable : opts.iconFavoriDisable}
-                                            style={[styles.headerImage, { tintColor: "#000" }]} />
-                                    </TouchableOpacity> : null
-                                }
+            <View>
+                {this.renderMain()}
 
-                            </View>
-                        </> : null
-                    }
+                <View>
+                    <ImageBackground source={opts.backgroundImage} style={styles.backgroundImage}>
 
-                    {this.state.appStatus ? <Video
-                        source={{ uri: this.state.link }}
-                        ref={(ref) => { this.player = ref }}
-                        onBuffer={this.onBuffer}
-                        onError={this.videoError}
-                        poster={Image.resolveAssetSource(opts.backgroundImage).uri}
-                        posterResizeMode={"cover"}
-                        onLoad={this.onLoad}
-                        paused={this.state.paused}
-                        playWhenInactive={true}
-                        onProgress={this.onProgress}
-                        onEnd={() => { AlertIOS.alert('Done!') }}
-                        audioOnly={true}
-                        allowsExternalPlayback={true}
-                        controls={this.state.controls}
-                        muted={this.state.muted}
-                        volume={this.state.volume}
-                        style={styles.backgroundVideo}
-                        playInBackground
-                    /> : null}
-
-                    {
-                        !this.state.controls ? <>
-                            <View style={styles.headerView}>
+                        <ListItem
+                            containerStyle={styles.topButtonContainer}
+                            leftElement={
                                 <TouchableOpacity
                                     onPress={this.shareRadio}>
                                     <Image source={opts.iconShare}
-                                        style={styles.headerImage} />
+                                        style={styles.topButtonImage} />
                                 </TouchableOpacity>
-                                {
-                                    this.props.favori ?
-                                        <TouchableOpacity
-                                            onPress={this.favoriPress}>
-                                            <Image source={this.state.favoriStatus ? opts.iconFavoriEnable : opts.iconFavoriDisable}
-                                                style={styles.headerImage} />
-                                        </TouchableOpacity>
-                                        : null
-                                }
-                            </View>
-                            <View style={styles.playView}>
-                                <Text style={styles.title}>{this.state.notiTtile}</Text>
-                                <View style={styles.playControl}>
+                            }
+                            rightElement={
+                                this.props.favori ?
+                                    <TouchableOpacity
+                                        onPress={this.favoriPress}>
+                                        <Image source={this.state.favoriStatus ? opts.iconFavoriEnable : opts.iconFavoriDisable}
+                                            style={styles.topButtonImage} />
+                                    </TouchableOpacity>
+                                    : null
+                            }
+                        />
 
+                        <ListItem
+                            containerStyle={styles.titleContainer}
+                            title={this.state.title}
+                            titleStyle={styles.title}
+                        />
+
+                        <ListItem
+                            containerStyle={styles.playButtonContainer}
+                            title={
+                                <View style={styles.playControl}>
                                     <TouchableOpacity style={styles.playControlLeft}
                                         onPress={this.props.prev}>
                                         <Image source={opts.iconPrev}
@@ -315,25 +367,28 @@ export default class WooStream extends React.Component {
                                             style={styles.playImageNext} />
                                     </TouchableOpacity>
                                 </View>
-                            </View>
-                            <View style={styles.volumeControl}>
-                                <TouchableOpacity onPress={() => { this.setState({ volume: 0.0 }) }}>
-                                    <Image source={opts.iconVolume}
-                                        style={{ width: 20, height: 40, resizeMode: "contain", paddingVertical: 5, bottom: 0 }} />
-                                </TouchableOpacity>
-                                <Slider
-                                    style={{ width: "85%", height: 40, left: 10, alignSelf: "center", bottom: 0 }}
-                                    minimumValue={0}
-                                    maximumValue={1}
-                                    value={0.8}
-                                    onValueChange={this.volumeChange}
-                                    minimumTrackTintColor="#fff"
-                                    maximumTrackTintColor="#ffffff50"
-                                />
-                            </View>
-                        </> : null
-                    }
+                            }
+                        />
 
+                        <View style={styles.volumeControl}>
+                            <TouchableOpacity onPress={this.muteToggle}>
+                                <Image source={this.state.muted ? opts.iconMute : opts.iconVolume}
+                                    style={styles.muteControl} />
+                            </TouchableOpacity>
+                            <Slider
+                                style={styles.sliderControl}
+                                minimumValue={0}
+                                maximumValue={1}
+                                value={0.8}
+                                onValueChange={this.volumeChange}
+                                minimumTrackTintColor="#fff"
+                                maximumTrackTintColor="#ffffff50"
+                            />
+                        </View>
+
+                        {this.renderStreamer()}
+
+                    </ImageBackground>
                 </View>
             </View>
         );
@@ -341,49 +396,44 @@ export default class WooStream extends React.Component {
 };
 
 const styles = StyleSheet.create({
-    backgroundVideo: {
-        width: "100%",
-        height: 250,
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
+    mainContainer: { height: 50 },
+    mainRadioIcon: {
+        height: 40,
+        width: 60,
+
     },
-    volumeControl: {
-        flexDirection: "row",
-        position: "absolute",
-        width: "100%",
-        marginHorizontal: 10,
-        bottom: 10,
+    mainRadioTitle: {
+        color: '#2c3e50',
+        fontSize: 14
     },
-    headerViewTop: {
-        backgroundColor: "#fff",
-        flexDirection: "row",
-        width: "100%",
-        padding: 10,
-        justifyContent: "space-between"
+    mainRadioDescription: {
+        color: '#95a5a6',
+        fontSize: 12
     },
-    headerView: {
-        flexDirection: "row",
-        position: "absolute",
-        width: "100%",
-        padding: 10,
-        justifyContent: "space-between"
+    mainPlayIcon: {
+        height: 40,
+        width: 40,
+        alignContent: 'flex-end',
     },
-    headerImage: {
+    backgroundImage: { width: '100%' },
+    topButtonContainer: { height: 50, backgroundColor: 'transparent' },
+    topButtonImage: {
         width: 25,
         height: 25,
     },
-    playView: {
-        flexDirection: "column",
-        position: "absolute",
-        top: 70,
-        width: "100%",
-        justifyContent: "center"
+    titleContainer: { height: 50, backgroundColor: 'transparent' },
+    title: {
+        color: '#ffffff',
+        alignSelf: "center",
+        textShadowColor: '#00000080',
+        textShadowOffset: { width: 0.5, height: 0.5 },
+        fontWeight: '700',
+        fontSize: 22,
+        textShadowRadius: 1
     },
+    playButtonContainer: { height: 100, backgroundColor: 'transparent' },
     playControl: {
         flexDirection: "row",
-        top: 10,
         alignSelf: "center",
     },
     playControlLeft: {
@@ -404,15 +454,13 @@ const styles = StyleSheet.create({
     playImageNext: {
         width: 20, height: 80, left: 15, resizeMode: "contain", alignSelf: "center",
     },
-    title: {
-        color: '#ffffff',
-        alignSelf: "center",
-        textShadowColor: '#00000080',
-        textShadowOffset: { width: 0.5, height: 0.5 },
-        fontWeight: '700',
-        fontSize: 22,
-        top: -20,
-        textShadowRadius: 1
-    }
+    volumeControl: {
+        flexDirection: "row",
+        width: "100%",
+        marginHorizontal: 10,
+        bottom: 10,
+    },
+    muteControl: { width: 20, height: 40, resizeMode: "contain", paddingVertical: 5, bottom: 0 },
+    sliderControl: { width: "85%", height: 40, left: 10, alignSelf: "center", bottom: 0 }
 });
 
