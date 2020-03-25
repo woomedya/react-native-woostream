@@ -34,6 +34,10 @@ export const config = ({
 
 var streamer = null;
 
+export const getMainState = () => {
+    return mainStore.getCurrent();
+}
+
 export default class WooStream extends React.Component {
     constructor(props) {
         super(props);
@@ -43,11 +47,9 @@ export default class WooStream extends React.Component {
         var mainState = mainStore.getCurrent();
 
         this.state = {
-            duration: 0.0,
-            currentTime: 0.0,
-            volume: 1,
-            muted: false,
+            volume: mainState.volume == null ? 1 : mainState.volume,
             paused: this.id == mainState.id ? mainState.paused : true,
+            mute: mainState.muted || false,
             link: this.props.link,
             favoriStatus: this.props.favoriStatus || false,
             title: this.props.title,
@@ -64,9 +66,6 @@ export default class WooStream extends React.Component {
         }
 
         mainStore.default.addListener(mainStore.STATE, this.setMainState);
-
-        MusicControl.on('play', this.onPlay);
-        MusicControl.on('pause', this.onPause)
     }
 
     componentWillUnmount = () => {
@@ -102,7 +101,12 @@ export default class WooStream extends React.Component {
 
         if (Object.keys(state).length)
             this.setState(state, () => {
-                this.setMainValue()
+                if (!this.state.paused) {
+                    mainStore.setCurrent({
+                        ...this.state,
+                        id: this.id
+                    });
+                }
 
                 this.setMusicControl();
             });
@@ -117,18 +121,14 @@ export default class WooStream extends React.Component {
         }
     }
 
-    setMainValue = () => {
-        if (!this.state.paused) {
-            mainStore.setCurrent(this.id, this.state);
-        }
-    }
-
     setMainState = () => {
         var mainState = mainStore.getCurrent();
         this.setState({
             mainState,
             mainStateId: mainState.id,
-            paused: this.id == mainState.id ? mainState.paused : this.state.paused
+            paused: this.id == mainState.id ? mainState.paused : this.state.paused,
+            muted: mainState.muted,
+            volume: mainState.volume
         });
     }
 
@@ -152,11 +152,20 @@ export default class WooStream extends React.Component {
         MusicControl.enableControl('changePlaybackPosition', true)
         MusicControl.enableControl('volume', true)
         MusicControl.enableControl('closeNotification', true, { when: 'pause' });
+
+        MusicControl.off('play', this.onPlay);
+        MusicControl.off('pause', this.onPause)
+
+        MusicControl.on('play', this.onPlay);
+        MusicControl.on('pause', this.onPause)
     };
 
     onPlay = () => {
         this.setState({ paused: false }, () => {
-            this.setMainValue();
+            mainStore.setCurrent({
+                ...this.state,
+                id: this.id
+            });
 
             this.setMusicControl();
 
@@ -170,7 +179,11 @@ export default class WooStream extends React.Component {
 
     onPause = () => {
         this.setState({ paused: true }, () => {
-            this.setMainValue()
+            if (!this.state.paused || this.state.mainStateId == this.id) {
+                mainStore.setCurrent({
+                    paused: true
+                });
+            }
 
             MusicControl.updatePlayback({
                 state: MusicControl.STATE_PAUSED,
@@ -179,28 +192,19 @@ export default class WooStream extends React.Component {
     }
 
     onLoad = (data) => {
-        this.setState({ duration: data.duration }, () => {
-            this.setMainValue()
-
-            MusicControl.updatePlayback({
-                state: MusicControl.STATE_PAUSED,
-                elapsedTime: Number(this.state.currentTime.toFixed()),
-                duration: Number(this.state.currentTime.toFixed())
-            })
-        });
+        MusicControl.updatePlayback({
+            state: MusicControl.STATE_PAUSED,
+            elapsedTime: Number(data.duration.toFixed()),
+            duration: Number(data.duration.toFixed())
+        })
     }
 
     onProgress = (data) => {
-        this.setState({ currentTime: data.currentTime }, () => {
-            this.setMainValue()
-
-            if (!this.state.paused)
-                MusicControl.updatePlayback({
-                    state: MusicControl.STATE_PLAYING,
-                    elapsedTime: Number(this.state.currentTime.toFixed()),
-                    duration: Number(this.state.currentTime.toFixed())
-                })
-        });
+        MusicControl.updatePlayback({
+            state: MusicControl.STATE_PLAYING,
+            elapsedTime: Number(data.currentTime.toFixed()),
+            duration: Number(data.currentTime.toFixed())
+        })
     }
 
     onBuffer = ({ isBuffering }) => {
@@ -209,7 +213,9 @@ export default class WooStream extends React.Component {
 
     volumeChange = (volume) => {
         this.setState({ volume }, () => {
-            this.setMainValue()
+            mainStore.setCurrent({
+                volume
+            });
 
             MusicControl.updatePlayback({
                 volume: volume,
@@ -219,10 +225,13 @@ export default class WooStream extends React.Component {
     }
 
     muteToggle = () => {
+        var muted = !this.state.muted;
         this.setState({
-            muted: !this.state.muted
+            muted
         }, () => {
-            this.setMainValue()
+            mainStore.setCurrent({
+                muted
+            });
         });
     }
 
@@ -235,8 +244,7 @@ export default class WooStream extends React.Component {
     }
 
     mainPausedPlay = () => {
-        mainStore.setCurrent(this.state.mainStateId, {
-            ...this.state.mainState,
+        mainStore.setCurrent({
             paused: !this.state.mainState.paused
         });
     }
@@ -379,7 +387,7 @@ export default class WooStream extends React.Component {
                                 style={styles.sliderControl}
                                 minimumValue={0}
                                 maximumValue={1}
-                                value={0.8}
+                                value={this.state.volume}
                                 onValueChange={this.volumeChange}
                                 minimumTrackTintColor="#fff"
                                 maximumTrackTintColor="#ffffff50"

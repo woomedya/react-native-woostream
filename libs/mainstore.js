@@ -8,8 +8,10 @@ const store = storeUtil.setScope('nodemodules_woostream_main', {
 
 export const STATE = 'state';
 
-export const setCurrent = (id, state) => {
-    store.set(STATE, Object.assign({ id }, state));
+export const setCurrent = (state) => {
+    var old = getCurrent();
+    var newState = Object.assign(old, state);
+    store.set(STATE, newState);
 }
 
 export const getCurrent = () => {
