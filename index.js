@@ -69,7 +69,8 @@ export default class WooStream extends React.Component {
     }
 
     componentWillUnmount = () => {
-        MusicControl.stopControl();
+        if (!this.state.mainStateId)
+            MusicControl.stopControl();
 
         if (opts.stopPreviousPlayers) {
             playerStore.default.removeListener('id', this.controlCurrentPlayer);
