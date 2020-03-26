@@ -49,7 +49,7 @@ export default class WooStream extends React.Component {
         this.state = {
             volume: mainState.volume == null ? 1 : mainState.volume,
             paused: this.id == mainState.id ? mainState.paused : true,
-            mute: mainState.muted || false,
+            muted: mainState.muted || false,
             link: this.props.link,
             favoriStatus: this.props.favoriStatus || false,
             title: this.props.title,
@@ -134,8 +134,8 @@ export default class WooStream extends React.Component {
 
     setMusicControl = () => {
         MusicControl.setNowPlaying({
-            title: this.props.notiTtile || "",
-            artwork: this.props.notiIkon || logo,
+            title: this.props.title || "",
+            artwork: this.props.icon || logo,
             artist: this.props.notiArtist || "",
             album: this.props.notiAlbum || "",
             genre: this.props.notiGenre || "",
