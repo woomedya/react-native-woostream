@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
         width: 25,
         height: 25,
     },
-    titleContainer: { height: 50, backgroundColor: 'transparent' },
+    titleContainer: { backgroundColor: 'transparent' },
     title: {
         color: '#ffffff',
         alignSelf: "center",
