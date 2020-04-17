@@ -38,6 +38,26 @@ export const getMainState = () => {
     return mainStore.getCurrent();
 }
 
+const onPlayFromControl = () => {
+    mainStore.setCurrent({
+        paused: false,
+    });
+
+    MusicControl.updatePlayback({
+        state: MusicControl.STATE_PLAYING,
+    });
+};
+
+const onPauseFromControl = () => {
+    mainStore.setCurrent({
+        paused: true
+    });
+
+    MusicControl.updatePlayback({
+        state: MusicControl.STATE_PAUSED,
+    });
+}
+
 export default class WooStream extends React.Component {
     constructor(props) {
         super(props);
@@ -78,6 +98,13 @@ export default class WooStream extends React.Component {
 
         mainStore.default.removeListener(mainStore.STATE, this.setMainState);
 
+        this.musicControlOff();
+
+        MusicControl.on('play', onPlayFromControl);
+        MusicControl.on('pause', onPauseFromControl);
+    }
+
+    musicControlOff = () => {
         MusicControl.off('play', this.onPlay);
         MusicControl.off('pause', this.onPause);
     }
@@ -154,11 +181,10 @@ export default class WooStream extends React.Component {
         MusicControl.enableControl('volume', true)
         MusicControl.enableControl('closeNotification', true, { when: 'pause' });
 
-        MusicControl.off('play', this.onPlay);
-        MusicControl.off('pause', this.onPause)
+        this.musicControlOff();
 
         MusicControl.on('play', this.onPlay);
-        MusicControl.on('pause', this.onPause)
+        MusicControl.on('pause', this.onPause);
     };
 
     onPlay = () => {
@@ -188,7 +214,7 @@ export default class WooStream extends React.Component {
 
             MusicControl.updatePlayback({
                 state: MusicControl.STATE_PAUSED,
-            })
+            });
         });
     }
 
