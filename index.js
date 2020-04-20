@@ -7,6 +7,7 @@ import opts from './config';
 import * as playerStore from './libs/playerstore';
 import * as mainStore from './libs/mainstore';
 import { ListItem } from 'react-native-elements';
+import * as timeoutUtil from 'woo-utilities/timeout';
 
 const logo = require('./assets/logo.png');
 
@@ -238,17 +239,23 @@ export default class WooStream extends React.Component {
         // TODO: ihtiyaç durumunda kullanılabilir
     }
 
-    volumeChange = (volume) => {
-        this.setState({ volume }, () => {
-            mainStore.setCurrent({
-                volume
-            });
+    setVolume = (volume) => {
+        mainStore.setCurrent({
+            volume
+        });
 
-            MusicControl.updatePlayback({
-                volume: volume,
-                maxVolume: 1,
-            })
-        })
+        MusicControl.updatePlayback({
+            volume: volume,
+            maxVolume: 1,
+        });
+    }
+
+    volumeChange = (volume) => {
+        this.setVolume(volume);
+
+        timeoutUtil.setRefreshTimeout('volume', () => {
+            this.setState({ volume });
+        }, 100);
     }
 
     muteToggle = () => {

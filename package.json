@@ -1,6 +1,6 @@
 {
   "name": "react-native-woostream",
-  "version": "1.0.8",
+  "version": "1.0.11",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -17,7 +17,8 @@
   },
   "homepage": "https://github.com/woomedya/react-native-woostream#readme",
   "dependencies": {
-    "jutore": "^1.0.0"
+    "jutore": "^1.0.0",
+    "woo-utilities": "^1.1.0"
   },
   "peerDependencies": {
     "@react-native-community/slider": "^2.0.8",
