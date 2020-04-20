@@ -67,8 +67,10 @@ export default class WooStream extends React.Component {
 
         var mainState = mainStore.getCurrent();
 
+        this.volume = mainState.volume == null ? 1 : mainState.volume;
+
         this.state = {
-            volume: mainState.volume == null ? 1 : mainState.volume,
+            volume: this.volume,
             paused: this.id == mainState.id ? mainState.paused : true,
             muted: mainState.muted || false,
             link: this.props.link,
@@ -90,9 +92,6 @@ export default class WooStream extends React.Component {
     }
 
     componentWillUnmount = () => {
-        // if (!this.state.mainStateId)
-        //     MusicControl.stopControl();
-
         if (opts.stopPreviousPlayers) {
             playerStore.default.removeListener('id', this.controlCurrentPlayer);
         }
@@ -152,13 +151,17 @@ export default class WooStream extends React.Component {
 
     setMainState = () => {
         var mainState = mainStore.getCurrent();
-        this.setState({
+        var state = {
             mainState,
             mainStateId: mainState.id,
             paused: this.id == mainState.id ? mainState.paused : this.state.paused,
-            muted: mainState.muted,
-            volume: mainState.volume
-        });
+            muted: mainState.muted
+        };
+
+        if (this.volume != mainState.volume)
+            state.volume = mainState.volume;
+
+        this.setState(state);
     }
 
     setMusicControl = () => {
@@ -240,6 +243,8 @@ export default class WooStream extends React.Component {
     }
 
     setVolume = (volume) => {
+        this.volume = volume;
+
         mainStore.setCurrent({
             volume
         });
