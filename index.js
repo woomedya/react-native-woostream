@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground, Dimensions } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
@@ -8,6 +8,7 @@ import * as playerStore from './libs/playerstore';
 import * as mainStore from './libs/mainstore';
 import { ListItem } from 'react-native-elements';
 import * as timeoutUtil from 'woo-utilities/timeout';
+const { width, height } = Dimensions.get("window");
 
 const logo = require('./assets/logo.png');
 
@@ -379,7 +380,8 @@ export default class WooStream extends React.Component {
                             rightElement={
                                 this.props.favori ?
                                     <TouchableOpacity
-                                        onPress={this.favoriPress}>
+                                        onPress={this.favoriPress}
+                                        style={styles.topButtonImage}>
                                         <Image source={this.state.favoriStatus ? opts.iconFavoriEnable : opts.iconFavoriDisable}
                                             style={styles.topButtonImage} />
                                     </TouchableOpacity>
@@ -429,6 +431,7 @@ export default class WooStream extends React.Component {
                                 value={this.state.volume}
                                 onValueChange={this.volumeChange}
                                 minimumTrackTintColor="#fff"
+                                thumbTintColor="#fff"
                                 maximumTrackTintColor="#ffffff50"
                             />
                         </View>
@@ -441,7 +444,7 @@ export default class WooStream extends React.Component {
         );
     }
 };
-
+const mainHeight = height / 4;
 const styles = StyleSheet.create({
     mainContainer: { height: 50 },
     mainRadioIcon: {
@@ -462,52 +465,58 @@ const styles = StyleSheet.create({
         width: 40,
         alignContent: 'flex-end',
     },
-    backgroundImage: { width: '100%' },
-    topButtonContainer: { height: 50, backgroundColor: 'transparent' },
+    backgroundImage: { width: '100%', height: mainHeight, },
+    topButtonContainer: { width: width, height: mainHeight / 5, paddingVertical: 0, top: 5, backgroundColor: 'transparent' },
     topButtonImage: {
-        width: 25,
-        height: 25,
+        width: mainHeight / 8,
+        height: mainHeight / 8,
     },
-    titleContainer: { backgroundColor: 'transparent' },
+    titleContainer: { backgroundColor: 'transparent', height: mainHeight / 6, padding: 0, },
     title: {
+        padding: 0,
         color: '#ffffff',
         alignSelf: "center",
+        textAlign: "center",
         textShadowColor: '#00000080',
         textShadowOffset: { width: 0.5, height: 0.5 },
         fontWeight: '700',
-        fontSize: 22,
+        fontSize: mainHeight / 9,
         textShadowRadius: 1
     },
-    playButtonContainer: { height: 100, backgroundColor: 'transparent' },
+    playButtonContainer: { height: mainHeight / 2.2, backgroundColor: 'transparent', padding: 0 },
     playControl: {
         flexDirection: "row",
         alignSelf: "center",
     },
     playControlLeft: {
-        width: 40, height: 40, right: 10,
+        width: mainHeight / 10, height: "100%", right: 10,
     },
     playControlCenter: {
-        width: 80, height: 80, alignSelf: "center",
+        width: mainHeight / 3, height: "100%", alignSelf: "center",
     },
     playControlRight: {
-        width: 40, height: 40, left: 10,
+        width: mainHeight / 10, height: "100%", left: 10,
     },
     playImage: {
-        width: 80, height: 80, alignSelf: "center",
+        width: "125%", height: "100%", alignSelf: "center", padding: 0
     },
     playImagePrev: {
-        width: 20, height: 80, right: 15, resizeMode: "contain", alignSelf: "center",
+        width: mainHeight / 10, height: "100%", right: 15, resizeMode: "contain", alignSelf: "center",
     },
     playImageNext: {
-        width: 20, height: 80, left: 15, resizeMode: "contain", alignSelf: "center",
+        width: mainHeight / 10, height: "100%", left: 15, resizeMode: "contain", alignSelf: "center",
     },
     volumeControl: {
         flexDirection: "row",
         width: "100%",
-        marginHorizontal: 10,
-        bottom: 10,
+        height: mainHeight / 6,
+        backgroundColor: 'transparent',
+        paddingHorizontal: 10,
+        alignItems: "center",
+        bottom: 0,
+        padding: 0,
     },
     muteControl: { width: 20, height: 40, resizeMode: "contain", paddingVertical: 5, bottom: 0 },
-    sliderControl: { width: "85%", height: 40, left: 10, alignSelf: "center", bottom: 0 }
+    sliderControl: { width: "93%", height: 40, left: 10, alignSelf: "center", bottom: 0 }
 });
 
