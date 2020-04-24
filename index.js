@@ -320,10 +320,16 @@ export default class WooStream extends React.Component {
                         resizeMode="contain"
                     />
                 }
-                title={this.state.mainState.title}
-                titleStyle={styles.mainRadioTitle}
-                subtitle={this.state.mainState.description}
-                subtitleStyle={styles.mainRadioDescription}
+                title={
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={styles.mainRadioTitle} >
+                        {this.state.mainState.title}
+                    </Text>
+                }
+                subtitle={
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={styles.mainRadioDescription} >
+                        {this.state.mainState.description}
+                    </Text>
+                }
                 rightElement={
                     <TouchableOpacity onPress={this.mainPausedPlay}>
                         <Image
@@ -449,7 +455,7 @@ const styles = StyleSheet.create({
     mainContainer: { height: 50 },
     mainRadioIcon: {
         height: 40,
-        width: 60,
+        width: width / 6,
 
     },
     mainRadioTitle: {
