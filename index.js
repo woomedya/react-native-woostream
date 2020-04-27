@@ -109,7 +109,7 @@ export default class WooStream extends React.Component {
             MusicControl.enableControl('play', true)
             MusicControl.enableControl('changePlaybackPosition', true)
             MusicControl.enableControl('volume', true)
-            MusicControl.enableControl('closeNotification', true, { when: 'always' });
+            MusicControl.enableControl('closeNotification', true, { when: 'never' });
 
         }
     }
@@ -275,6 +275,9 @@ export default class WooStream extends React.Component {
             this.oneStart = true
             this.setNowPlaying();
         }
+        MusicControl.updatePlayback({
+            state: MusicControl.STATE_PLAYING,
+        });
     }
 
     onBuffer = ({ isBuffering }) => {
