@@ -34,7 +34,7 @@ export const config = ({
         opts.stopPreviousPlayers = stopPreviousPlayers;
 }
 
-var streamer = null;
+var streamer = null, oneStart = false;
 
 export const getMainState = () => {
     return mainStore.getCurrent();
@@ -76,7 +76,6 @@ export default class WooStream extends React.Component {
         super(props);
 
         this.id = props.description;
-        this.oneStart = false;
         var mainState = mainStore.getCurrent();
 
         this.volume = mainState.volume == null ? 1 : mainState.volume;
@@ -251,7 +250,7 @@ export default class WooStream extends React.Component {
                 id: this.id
             });
 
-            if (this.oneStart) {
+            if (oneStart) {
                 this.musicControlOff();
             }
             this.musicControlOn();
@@ -289,8 +288,8 @@ export default class WooStream extends React.Component {
                 });
             });
         }
-        if (!this.oneStart) {
-            this.oneStart = true
+        if (!oneStart) {
+            oneStart = true
             this.setNowPlaying();
         }
     }
