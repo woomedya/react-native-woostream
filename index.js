@@ -48,7 +48,12 @@ const onPlayFromControl = () => {
     var mainState = mainStore.getCurrent();
     MusicControl.setNowPlaying({
         title: mainState.title,
-        artwork: mainState.icon
+        artwork: mainState.icon,
+        artist: mainState.artist,
+        album: mainState.album,
+        genre: mainState.genre,
+        description: mainState.description,
+        notificationIcon: mainState.notificationIcon,
     });
 
     MusicControl.updatePlayback({
@@ -85,6 +90,12 @@ export default class WooStream extends React.Component {
             title: this.props.title,
             icon: this.props.icon,
             description: this.props.description,
+
+            artist: this.props.notiArtist,
+            album: this.props.notiAlbum,
+            genre: this.props.notiGenre,
+            notificationIcon: this.props.notiNotificationIcon,
+
             mainState: mainState,
             mainStateId: mainState.id,
             loading: false
@@ -101,7 +112,12 @@ export default class WooStream extends React.Component {
         if (streamer == this.id) {
             MusicControl.setNowPlaying({
                 title: this.props.title || "",
-                artwork: this.props.icon || logo
+                artwork: this.props.icon || logo,
+                artist: this.props.notiArtist || "",
+                album: this.props.notiAlbum || "",
+                genre: this.props.notiGenre || "",
+                description: this.props.notiDescription || "",
+                notificationIcon: this.props.notiNotificationIcon || "logo",
             });
 
             MusicControl.enableBackgroundMode(true);
@@ -159,6 +175,19 @@ export default class WooStream extends React.Component {
         if (prevProps.description != this.props.description)
             state.description = this.props.description;
 
+        if (prevProps.notiArtist != this.props.notiArtist)
+            state.artist = this.props.notiArtist;
+
+        if (prevProps.notiAlbum != this.props.notiAlbum)
+            state.album = this.props.notiAlbum;
+
+        if (prevProps.notiGenre != this.props.notiGenre)
+            state.genre = this.props.notiGenre;
+
+        if (prevProps.notiNotificationIcon != this.props.notiNotificationIcon)
+            state.notificationIcon = this.props.notiNotificationIcon;
+
+
         if (Object.keys(state).length) {
             state.loading = true;
 
@@ -178,7 +207,12 @@ export default class WooStream extends React.Component {
     setNowPlaying = () => {
         MusicControl.setNowPlaying({
             title: this.props.title,
-            artwork: this.props.icon
+            artwork: this.props.icon,
+            artist: this.props.notiArtist,
+            album: this.props.notiAlbum,
+            genre: this.props.notiGenre,
+            description: this.props.notiDescription,
+            notificationIcon: this.props.notiNotificationIcon || "logo",
         });
         MusicControl.updatePlayback({
             state: MusicControl.STATE_PLAYING,
