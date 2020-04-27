@@ -176,15 +176,6 @@ export default class WooStream extends React.Component {
 
     setNowPlaying = () => {
 
-        console.log({
-            title: this.props.title,
-            artwork: this.props.icon,
-            artist: this.props.notiArtist,
-            album: this.props.notiAlbum,
-            genre: this.props.notiGenre,
-            description: this.props.notiDescription,
-            notificationIcon: this.props.notiNotificationIcon || "logo",
-        })
         MusicControl.setNowPlaying({
             title: this.props.title,
             artwork: this.props.icon,
@@ -233,7 +224,6 @@ export default class WooStream extends React.Component {
             });
 
             if (this.oneStart) {
-                MusicControl.resetNowPlaying()
                 this.musicControlOff();
             }
             this.musicControlOn();
@@ -275,9 +265,6 @@ export default class WooStream extends React.Component {
             this.oneStart = true
             this.setNowPlaying();
         }
-        MusicControl.updatePlayback({
-            state: MusicControl.STATE_PLAYING,
-        });
     }
 
     onBuffer = ({ isBuffering }) => {
