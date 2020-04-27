@@ -65,7 +65,7 @@ export default class WooStream extends React.Component {
         super(props);
 
         this.id = props.description;
-
+        this.oneStart = false;
         var mainState = mainStore.getCurrent();
 
         this.volume = mainState.volume == null ? 1 : mainState.volume;
@@ -93,18 +93,15 @@ export default class WooStream extends React.Component {
         mainStore.default.addListener(mainStore.STATE, this.setMainState);
 
         if (streamer == this.id) {
-            if (this.props.title)
-                MusicControl.setNowPlaying({
-                    title: this.props.title || "",
-                    artwork: this.props.icon || logo,
-                    artist: this.props.notiArtist || "",
-                    album: this.props.notiAlbum || "",
-                    genre: this.props.notiGenre || "",
-                    description: this.props.notiDescription || "",
-                    notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
-                    // volume: this.props.volume,
-                    // maxVolume: 1,
-                });
+            MusicControl.setNowPlaying({
+                title: this.props.title || "",
+                artwork: this.props.icon || logo,
+                artist: this.props.notiArtist || "",
+                album: this.props.notiAlbum || "",
+                genre: this.props.notiGenre || "",
+                description: this.props.notiDescription || "",
+                notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
+            });
 
             MusicControl.enableBackgroundMode(true);
             MusicControl.handleAudioInterruptions(true)
@@ -112,7 +109,8 @@ export default class WooStream extends React.Component {
             MusicControl.enableControl('play', true)
             MusicControl.enableControl('changePlaybackPosition', true)
             MusicControl.enableControl('volume', true)
-            MusicControl.enableControl('closeNotification', true, { when: 'pause' });
+            MusicControl.enableControl('closeNotification', true, { when: 'always' });
+
         }
     }
 
@@ -170,15 +168,36 @@ export default class WooStream extends React.Component {
                         id: this.id
                     });
 
-                    MusicControl.updatePlayback({
-                        title: state.title,
-                        artwork: state.icon,
-                        description: state.description,
-                        state: MusicControl.STATE_PAUSED,
-                    });
+                    this.setNowPlaying();
                 }
             });
         }
+    }
+
+    setNowPlaying = () => {
+
+        console.log({
+            title: this.props.title,
+            artwork: this.props.icon,
+            artist: this.props.notiArtist,
+            album: this.props.notiAlbum,
+            genre: this.props.notiGenre,
+            description: this.props.notiDescription,
+            notificationIcon: this.props.notiNotificationIcon,
+        })
+        MusicControl.setNowPlaying({
+            title: this.props.title,
+            artwork: this.props.icon,
+            artist: this.props.notiArtist,
+            album: this.props.notiAlbum,
+            genre: this.props.notiGenre,
+            description: this.props.notiDescription,
+            notificationIcon: this.props.notiNotificationIcon,
+        });
+        MusicControl.updatePlayback({
+            state: MusicControl.STATE_PLAYING,
+        });
+
     }
 
     controlCurrentPlayer = () => {
@@ -196,7 +215,8 @@ export default class WooStream extends React.Component {
             mainState,
             mainStateId: mainState.id,
             paused: this.id == mainState.id ? mainState.paused : this.state.paused,
-            muted: mainState.muted
+            muted: mainState.muted,
+            loading: mainState.loading
         };
 
         if (this.volume != mainState.volume)
@@ -212,19 +232,12 @@ export default class WooStream extends React.Component {
                 id: this.id
             });
 
-            this.musicControlOff();
+            if (this.oneStart) {
+                MusicControl.resetNowPlaying()
+                this.musicControlOff();
+            }
             this.musicControlOn();
-
-            MusicControl.updatePlayback({
-                state: MusicControl.STATE_PLAYING,
-                title: this.props.title || "",
-                artwork: this.props.icon || logo,
-                artist: this.props.notiArtist || "",
-                album: this.props.notiAlbum || "",
-                genre: this.props.notiGenre || "",
-                description: this.props.notiDescription || "",
-                notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
-            });
+            this.setNowPlaying();
 
             playerStore.setCurrent(this.id);
         });
@@ -252,11 +265,15 @@ export default class WooStream extends React.Component {
         if (this.state.loading) {
             this.setState({
                 loading: false
+            }, () => {
+                mainStore.setCurrent({
+                    loading: false
+                });
             });
-
-            MusicControl.updatePlayback({
-                state: MusicControl.STATE_PLAYING,
-            });
+        }
+        if (!this.oneStart) {
+            this.oneStart = true
+            this.setNowPlaying();
         }
     }
 
@@ -269,11 +286,6 @@ export default class WooStream extends React.Component {
 
         mainStore.setCurrent({
             volume
-        });
-
-        MusicControl.updatePlayback({
-            volume: volume,
-            maxVolume: 1,
         });
     }
 
