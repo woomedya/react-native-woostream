@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground, Dimensions } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground, Dimensions, ActivityIndicator } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
@@ -80,7 +80,8 @@ export default class WooStream extends React.Component {
             icon: this.props.icon,
             description: this.props.description,
             mainState: mainState,
-            mainStateId: mainState.id
+            mainStateId: mainState.id,
+            loading: false
         }
     }
 
@@ -90,6 +91,29 @@ export default class WooStream extends React.Component {
         }
 
         mainStore.default.addListener(mainStore.STATE, this.setMainState);
+
+        if (streamer == this.id) {
+            if (this.props.title)
+                MusicControl.setNowPlaying({
+                    title: this.props.title || "",
+                    artwork: this.props.icon || logo,
+                    artist: this.props.notiArtist || "",
+                    album: this.props.notiAlbum || "",
+                    genre: this.props.notiGenre || "",
+                    description: this.props.notiDescription || "",
+                    notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
+                    // volume: this.props.volume,
+                    // maxVolume: 1,
+                });
+
+            MusicControl.enableBackgroundMode(true);
+            MusicControl.handleAudioInterruptions(true)
+            MusicControl.enableControl('pause', true)
+            MusicControl.enableControl('play', true)
+            MusicControl.enableControl('changePlaybackPosition', true)
+            MusicControl.enableControl('volume', true)
+            MusicControl.enableControl('closeNotification', true, { when: 'pause' });
+        }
     }
 
     componentWillUnmount = () => {
@@ -100,14 +124,22 @@ export default class WooStream extends React.Component {
         mainStore.default.removeListener(mainStore.STATE, this.setMainState);
 
         this.musicControlOff();
-
-        MusicControl.on('play', onPlayFromControl);
-        MusicControl.on('pause', onPauseFromControl);
+        this.musicControlOnFromOther();
     }
 
     musicControlOff = () => {
         MusicControl.off('play', this.onPlay);
         MusicControl.off('pause', this.onPause);
+    }
+
+    musicControlOn = () => {
+        MusicControl.on('play', this.onPlay);
+        MusicControl.on('pause', this.onPause);
+    }
+
+    musicControlOnFromOther = () => {
+        MusicControl.on('play', onPlayFromControl);
+        MusicControl.on('pause', onPauseFromControl);
     }
 
     componentDidUpdate(prevProps) {
@@ -128,17 +160,25 @@ export default class WooStream extends React.Component {
         if (prevProps.description != this.props.description)
             state.description = this.props.description;
 
-        if (Object.keys(state).length)
+        if (Object.keys(state).length) {
+            state.loading = true;
+
             this.setState(state, () => {
                 if (!this.state.paused) {
                     mainStore.setCurrent({
                         ...this.state,
                         id: this.id
                     });
-                }
 
-                this.setMusicControl();
+                    MusicControl.updatePlayback({
+                        title: state.title,
+                        artwork: state.icon,
+                        description: state.description,
+                        state: MusicControl.STATE_PAUSED,
+                    });
+                }
             });
+        }
     }
 
     controlCurrentPlayer = () => {
@@ -165,33 +205,6 @@ export default class WooStream extends React.Component {
         this.setState(state);
     }
 
-    setMusicControl = () => {
-        MusicControl.setNowPlaying({
-            title: this.props.title || "",
-            artwork: this.props.icon || logo,
-            artist: this.props.notiArtist || "",
-            album: this.props.notiAlbum || "",
-            genre: this.props.notiGenre || "",
-            description: this.props.notiDescription || "",
-            notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
-            maxVolume: 1,
-            volume: this.props.volume,
-        });
-
-        MusicControl.enableBackgroundMode(true);
-        MusicControl.handleAudioInterruptions(true)
-        MusicControl.enableControl('pause', true)
-        MusicControl.enableControl('play', true)
-        MusicControl.enableControl('changePlaybackPosition', true)
-        MusicControl.enableControl('volume', true)
-        MusicControl.enableControl('closeNotification', true, { when: 'pause' });
-
-        this.musicControlOff();
-
-        MusicControl.on('play', this.onPlay);
-        MusicControl.on('pause', this.onPause);
-    };
-
     onPlay = () => {
         this.setState({ paused: false }, () => {
             mainStore.setCurrent({
@@ -199,10 +212,18 @@ export default class WooStream extends React.Component {
                 id: this.id
             });
 
-            this.setMusicControl();
+            this.musicControlOff();
+            this.musicControlOn();
 
             MusicControl.updatePlayback({
                 state: MusicControl.STATE_PLAYING,
+                title: this.props.title || "",
+                artwork: this.props.icon || logo,
+                artist: this.props.notiArtist || "",
+                album: this.props.notiAlbum || "",
+                genre: this.props.notiGenre || "",
+                description: this.props.notiDescription || "",
+                notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
             });
 
             playerStore.setCurrent(this.id);
@@ -224,19 +245,19 @@ export default class WooStream extends React.Component {
     }
 
     onLoad = (data) => {
-        MusicControl.updatePlayback({
-            state: MusicControl.STATE_PAUSED,
-            elapsedTime: Number(data.duration.toFixed()),
-            duration: Number(data.duration.toFixed())
-        })
+        // TODO: ihtiyaç durumunda kullanılabilir
     }
 
     onProgress = (data) => {
-        MusicControl.updatePlayback({
-            state: MusicControl.STATE_PLAYING,
-            elapsedTime: Number(data.currentTime.toFixed()),
-            duration: Number(data.currentTime.toFixed())
-        })
+        if (this.state.loading) {
+            this.setState({
+                loading: false
+            });
+
+            MusicControl.updatePlayback({
+                state: MusicControl.STATE_PLAYING,
+            });
+        }
     }
 
     onBuffer = ({ isBuffering }) => {
@@ -376,6 +397,12 @@ export default class WooStream extends React.Component {
 
                         <ListItem
                             containerStyle={styles.topButtonContainer}
+                            title={
+                                <ActivityIndicator
+                                    animating={this.state.loading && this.state.paused == false}
+                                    size={this.state.loading ? 50 : 0}
+                                    color={'#fff'} />
+                            }
                             leftElement={
                                 <TouchableOpacity
                                     onPress={this.shareRadio}>
