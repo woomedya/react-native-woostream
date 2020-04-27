@@ -100,7 +100,7 @@ export default class WooStream extends React.Component {
                 album: this.props.notiAlbum || "",
                 genre: this.props.notiGenre || "",
                 description: this.props.notiDescription || "",
-                notificationIcon: this.props.notiNotificationIcon || "ic_launcher",
+                notificationIcon: this.props.notiNotificationIcon || "logo",
             });
 
             MusicControl.enableBackgroundMode(true);
@@ -183,7 +183,7 @@ export default class WooStream extends React.Component {
             album: this.props.notiAlbum,
             genre: this.props.notiGenre,
             description: this.props.notiDescription,
-            notificationIcon: this.props.notiNotificationIcon,
+            notificationIcon: this.props.notiNotificationIcon || "logo",
         })
         MusicControl.setNowPlaying({
             title: this.props.title,
@@ -192,7 +192,7 @@ export default class WooStream extends React.Component {
             album: this.props.notiAlbum,
             genre: this.props.notiGenre,
             description: this.props.notiDescription,
-            notificationIcon: this.props.notiNotificationIcon,
+            notificationIcon: this.props.notiNotificationIcon || "logo",
         });
         MusicControl.updatePlayback({
             state: MusicControl.STATE_PLAYING,
