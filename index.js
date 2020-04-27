@@ -45,6 +45,12 @@ const onPlayFromControl = () => {
         paused: false,
     });
 
+    var mainState = mainStore.getCurrent();
+    MusicControl.setNowPlaying({
+        title: mainState.title,
+        artwork: mainState.icon
+    });
+
     MusicControl.updatePlayback({
         state: MusicControl.STATE_PLAYING,
     });
@@ -95,12 +101,7 @@ export default class WooStream extends React.Component {
         if (streamer == this.id) {
             MusicControl.setNowPlaying({
                 title: this.props.title || "",
-                artwork: this.props.icon || logo,
-                artist: this.props.notiArtist || "",
-                album: this.props.notiAlbum || "",
-                genre: this.props.notiGenre || "",
-                description: this.props.notiDescription || "",
-                notificationIcon: this.props.notiNotificationIcon || "logo",
+                artwork: this.props.icon || logo
             });
 
             MusicControl.enableBackgroundMode(true);
@@ -175,20 +176,13 @@ export default class WooStream extends React.Component {
     }
 
     setNowPlaying = () => {
-
         MusicControl.setNowPlaying({
             title: this.props.title,
-            artwork: this.props.icon,
-            artist: this.props.notiArtist,
-            album: this.props.notiAlbum,
-            genre: this.props.notiGenre,
-            description: this.props.notiDescription,
-            notificationIcon: this.props.notiNotificationIcon || "logo",
+            artwork: this.props.icon
         });
         MusicControl.updatePlayback({
             state: MusicControl.STATE_PLAYING,
         });
-
     }
 
     controlCurrentPlayer = () => {
