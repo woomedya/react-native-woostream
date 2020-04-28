@@ -549,22 +549,22 @@ const styles = StyleSheet.create({
         alignSelf: "center",
     },
     playControlLeft: {
-        width: mainHeight / 10, height: "100%", right: 10,
+        width: mainHeight / 10 + 30, height: "100%", right: 10, padding: 5,
     },
     playControlCenter: {
         width: mainHeight / 3, height: "100%", alignSelf: "center",
     },
     playControlRight: {
-        width: mainHeight / 10, height: "100%", left: 10,
+        width: mainHeight / 10 + 30, height: "100%", left: 10, padding: 5,
     },
     playImage: {
         width: "125%", height: "100%", alignSelf: "center", padding: 0
     },
     playImagePrev: {
-        width: mainHeight / 10, height: "100%", right: 15, resizeMode: "contain", alignSelf: "center",
+        width: mainHeight / 10, height: "100%", resizeMode: "contain", alignSelf: "center",
     },
     playImageNext: {
-        width: mainHeight / 10, height: "100%", left: 15, resizeMode: "contain", alignSelf: "center",
+        width: mainHeight / 10, height: "100%", resizeMode: "contain", alignSelf: "center",
     },
     volumeControl: {
         flexDirection: "row",
