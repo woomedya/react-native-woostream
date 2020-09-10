@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground, Dimensions, ActivityIndicator, Platform } from 'react-native';
+import { StyleSheet, TouchableOpacity, Text, Share, View, Image, ImageBackground, Dimensions, ActivityIndicator, Platform, Linking } from 'react-native';
 import Video from 'react-native-video';
 import Slider from '@react-native-community/slider';
 import MusicControl from 'react-native-music-control';
@@ -322,10 +322,14 @@ export default class WooStream extends React.Component {
     }
 
     pausedPlay = () => {
-        if (this.state.paused) {
-            this.onPlay();
-        } else {
-            this.onPause();
+        if (this.props.openBrowser && this.props.webUrl) {
+            Linking.openURL(this.props.webUrl)
+        } else if (!this.props.openBrowser) {
+            if (this.state.paused) {
+                this.onPlay();
+            } else {
+                this.onPause();
+            }
         }
     }
 
