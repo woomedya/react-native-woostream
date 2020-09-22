@@ -361,6 +361,16 @@ export default class WooStream extends React.Component {
         }
     };
 
+    getVolume = () => {
+        var volume = this.state.volume;
+        if (volume >= 0.5) {
+            let x = (1 - volume) * 0.8 / 0.5;
+            return 1 - x;
+        } else {
+            return volume * 0.2 / 0.5;
+        }
+    }
+
     renderMain = () => {
         return this.state.mainStateId && this.state.mainStateId != this.id ? <>
             <ListItem
@@ -413,7 +423,7 @@ export default class WooStream extends React.Component {
             allowsExternalPlayback={true}
             controls={false}
             muted={state.muted}
-            volume={state.volume}
+            volume={this.getVolume()}
             playInBackground
         /> : null;
     }
