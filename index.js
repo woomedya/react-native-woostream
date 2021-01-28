@@ -238,7 +238,7 @@ export default class WooStream extends React.Component {
             loading: mainState.loading
         };
 
-        if (this.volume != mainState.volume)
+        if (mainState.volume && this.volume != mainState.volume)
             state.volume = mainState.volume;
 
         this.setState(state);
@@ -518,7 +518,7 @@ export default class WooStream extends React.Component {
         );
     }
 };
-const mainHeight = height / 4;
+const mainHeight = height < width ? width / 4 : height / 4;
 const styles = StyleSheet.create({
     mainContainer: { height: 50 },
     mainRadioIcon: {
