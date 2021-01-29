@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
         alignContent: 'flex-end',
     },
     backgroundImage: { width: '100%', height: mainHeight, },
-    topButtonContainer: { width: width, height: mainHeight / 5, paddingVertical: 0, top: 5, backgroundColor: 'transparent' },
+    topButtonContainer: { width: "100%", height: mainHeight / 5, paddingVertical: 0, top: 5, backgroundColor: 'transparent' },
     topButtonImage: {
         width: mainHeight / 8,
         height: mainHeight / 8,
