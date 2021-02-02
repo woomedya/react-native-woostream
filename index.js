@@ -40,12 +40,12 @@ export const getMainState = () => {
     return mainStore.getCurrent();
 }
 
-const onPlayFromControl = () => {
+const onPlayFromControl = (openBrowser) => {
     mainStore.setCurrent({
         paused: false,
     });
 
-    setNowPlaying();
+    setNowPlaying(openBrowser);
 };
 
 var configInit = false;
@@ -68,8 +68,8 @@ const musicConfig = (openBrowser) => {
     }
 }
 
-const setNowPlaying = () => {
-    if (this.props.openBrowser)
+const setNowPlaying = (openBrowser) => {
+    if (openBrowser)
         return;
 
     var mainState = mainStore.getCurrent();
@@ -83,13 +83,13 @@ const setNowPlaying = () => {
         notificationIcon: mainState.notificationIcon,
     });
 
-    musicConfig(this.props.openBrowser);
+    musicConfig(openBrowser);
 
-    updatePlayback();
+    updatePlayback(openBrowser);
 }
 
-const updatePlayback = () => {
-    if (this.props.openBrowser)
+const updatePlayback = (openBrowser) => {
+    if (openBrowser)
         return;
 
     var mainState = mainStore.getCurrent();
@@ -99,12 +99,12 @@ const updatePlayback = () => {
     });
 }
 
-const onPauseFromControl = () => {
+const onPauseFromControl = (openBrowser) => {
     mainStore.setCurrent({
         paused: true
     });
 
-    updatePlayback();
+    updatePlayback(openBrowser);
 }
 
 export default class WooStream extends React.Component {
@@ -233,7 +233,7 @@ export default class WooStream extends React.Component {
     componentWillReceiveProps(prevProps) {
         var mainState = mainStore.getCurrent();
         if (mainState.id == this.id && !this.state.paused && this.link != mainState.link)
-            setNowPlaying();
+            setNowPlaying(this.props.openBrowser);
 
         this.link = mainState.link;
     }
@@ -273,7 +273,7 @@ export default class WooStream extends React.Component {
             playerStore.setCurrent(this.id);
 
             this.musicControlOff();
-            setNowPlaying();
+            setNowPlaying(this.props.openBrowser);
             this.musicControlOn();
         });
     }
@@ -286,7 +286,7 @@ export default class WooStream extends React.Component {
                 });
             }
 
-            updatePlayback();
+            updatePlayback(this.props.openBrowser);
         });
     }
 
@@ -304,7 +304,7 @@ export default class WooStream extends React.Component {
                     loading: false
                 });
 
-                updatePlayback();
+                updatePlayback(this.props.openBrowser);
             });
         }
     }
@@ -357,7 +357,7 @@ export default class WooStream extends React.Component {
             paused: !this.state.mainState.paused
         });
 
-        setNowPlaying();
+        setNowPlaying(this.props.openBrowser);
     }
 
     favoriPress = () => {
@@ -492,42 +492,42 @@ export default class WooStream extends React.Component {
                             containerStyle={styles.playButtonContainer}
                             title={
                                 <View style={styles.playControl}>
-                                    <TouchableOpacity style={styles.playControlLeft}
+                                    {this.props.openBrowser ? null : <TouchableOpacity style={styles.playControlLeft}
                                         onPress={this.props.prev}>
                                         <Image source={opts.iconPrev}
                                             style={styles.playImagePrev} />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                     <TouchableOpacity style={styles.playControlCenter}
                                         onPress={this.pausedPlay}>
                                         <Image
                                             source={this.state.paused ? opts.iconPlay : opts.iconPause}
                                             style={styles.playImage} />
                                     </TouchableOpacity>
-                                    <TouchableOpacity style={styles.playControlRight}
+                                    {this.props.openBrowser ? null : <TouchableOpacity style={styles.playControlRight}
                                         onPress={this.props.next}>
                                         <Image source={opts.iconNext}
                                             style={styles.playImageNext} />
-                                    </TouchableOpacity>
+                                    </TouchableOpacity>}
                                 </View>
                             }
                         />
-
-                        <View style={styles.volumeControl}>
-                            <TouchableOpacity onPress={this.muteToggle}>
-                                <Image source={this.state.muted ? opts.iconMute : opts.iconVolume}
-                                    style={styles.muteControl} />
-                            </TouchableOpacity>
-                            <Slider
-                                style={styles.sliderControl}
-                                minimumValue={0}
-                                maximumValue={1}
-                                value={this.state.volume}
-                                onValueChange={this.volumeChange}
-                                minimumTrackTintColor="#fff"
-                                thumbTintColor="#fff"
-                                maximumTrackTintColor="#ffffff50"
-                            />
-                        </View>
+                        {this.props.openBrowser ? null :
+                            <View style={styles.volumeControl}>
+                                <TouchableOpacity onPress={this.muteToggle}>
+                                    <Image source={this.state.muted ? opts.iconMute : opts.iconVolume}
+                                        style={styles.muteControl} />
+                                </TouchableOpacity>
+                                <Slider
+                                    style={styles.sliderControl}
+                                    minimumValue={0}
+                                    maximumValue={1}
+                                    value={this.state.volume}
+                                    onValueChange={this.volumeChange}
+                                    minimumTrackTintColor="#fff"
+                                    thumbTintColor="#fff"
+                                    maximumTrackTintColor="#ffffff50"
+                                />
+                            </View>}
 
                         {this.renderStreamer()}
 
