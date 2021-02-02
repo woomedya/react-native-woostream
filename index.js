@@ -49,7 +49,10 @@ const onPlayFromControl = () => {
 };
 
 var configInit = false;
-const musicConfig = () => {
+const musicConfig = (openBrowser) => {
+    if (openBrowser)
+        return;
+
     if (!configInit) {
         configInit = true;
 
@@ -66,6 +69,9 @@ const musicConfig = () => {
 }
 
 const setNowPlaying = () => {
+    if (this.props.openBrowser)
+        return;
+
     var mainState = mainStore.getCurrent();
     MusicControl.setNowPlaying({
         title: mainState.title,
@@ -77,12 +83,15 @@ const setNowPlaying = () => {
         notificationIcon: mainState.notificationIcon,
     });
 
-    musicConfig();
+    musicConfig(this.props.openBrowser);
 
     updatePlayback();
 }
 
 const updatePlayback = () => {
+    if (this.props.openBrowser)
+        return;
+
     var mainState = mainStore.getCurrent();
     musicState = mainState.paused ? MusicControl.STATE_PAUSED : MusicControl.STATE_PLAYING;
     MusicControl.updatePlayback({
@@ -149,6 +158,9 @@ export default class WooStream extends React.Component {
     }
 
     musicControlOff = () => {
+        if (this.props.openBrowser)
+            return;
+
         if (offAvailable) {
             MusicControl.off('play', this.onPlay);
             MusicControl.off('pause', this.onPause);
@@ -157,11 +169,18 @@ export default class WooStream extends React.Component {
 
     musicControlOn = () => {
         offAvailable = true;
+
+        if (this.props.openBrowser)
+            return;
+
         MusicControl.on('play', this.onPlay);
         MusicControl.on('pause', this.onPause);
     }
 
     musicControlOnFromOther = () => {
+        if (this.props.openBrowser)
+            return;
+
         MusicControl.on('play', onPlayFromControl);
         MusicControl.on('pause', onPauseFromControl);
     }
